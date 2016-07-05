@@ -1,0 +1,6 @@
+@()()
+
+Proverbe Croissify : <br/>
+  - On apprend de ses erreurs. <br/>
+Ce mail est sponsorisé par Croissify. <br/>
+Bonne journée et bisous !

@@ -1,0 +1,14 @@
+===== Règles de la torture =====
+
+- Une seule punition par jour
+- Plusieurs punitions peuvent s'accumuler si l'erreur se repête chaque jour
+- NON ! Rapporter une fois les croissants, ne signifie pas vider ses peines. A chaque oubli suffit ses croissants
+
+===== COMPILATION =====
+
+  npm install
+  ./node_modules/.bin/gulp
+
+  sbt run
+
+

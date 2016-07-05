@@ -5,5 +5,9 @@
 GET     /                           controllers.Croissants.index
 POST    /api/croissants             controllers.Croissants.newCroissant
 
+GET     /login                     controllers.Oauth.login(url)
+GET     /logout                    controllers.Oauth.logout(url: String ?= "/")
+GET     /oauthcallback             controllers.Oauth.callback
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
