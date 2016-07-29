@@ -47,4 +47,42 @@ object Croissant extends Repository[Croissant] {
     Croissant.save(croissant)
   }
 
+  def chooseDate(id: String, date: DateTime)(implicit reactiveMongoApi: ReactiveMongoApi): Future[WriteResult] = {
+    val query = Json.obj(
+      "id" -> id
+    )
+    update(query, Json.obj(
+      "$set" -> Json.obj(
+        "doneDate" -> date
+      )
+    ))
+  }
+
+  def findById(id: String)(implicit reactiveMongoApi: ReactiveMongoApi) = findByOpt(Json.obj("id" -> id))
+
+  def findNotDone(victimId: String)(implicit reactiveMongoApi: ReactiveMongoApi) = {
+    findByOpt(Json.obj(
+      "victimId" -> victimId,
+      "doneDate" -> Json.obj(
+        "$exists" -> false
+      )
+    ))
+  }
+
+  def findByDate(implicit reactiveMongoApi: ReactiveMongoApi) = {
+    val beginDate = DateTime.now.dayOfMonth().withMinimumValue()
+                      .hourOfDay().withMinimumValue()
+                      .minuteOfHour().withMinimumValue()
+                      .secondOfMinute().withMinimumValue()
+    val query = Json.obj(
+      "doneDate" -> Json.obj(
+        "$gte" -> beginDate
+      ),
+      "doneDate" -> Json.obj(
+        "$exists" -> true
+      )
+    )
+    list(query)
+  }
+
 }

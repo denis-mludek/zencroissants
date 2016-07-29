@@ -19,7 +19,8 @@ module.exports = {
     'semi': [
       2,
       'always'
-    ]
+    ],
+    'no-console': 'off'
   },
   'env': {
     'es6': true,

@@ -2,10 +2,6 @@
   "name": "zencroissants",
   "version": "1.0.0",
   "description": "Zen croissants",
-  "main": "index.js",
-  "directories": {
-    "test": "test"
-  },
   "scripts": {},
   "repository": {
     "type": "git",
@@ -14,6 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "moment": "^2.14.1",
+    "pikaday": "^1.4.0",
     "ramda": "^0.19.1",
     "react": "^15.0.2",
     "react-dom": "^15.0.2",

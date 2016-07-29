@@ -1,18 +1,33 @@
 
-.button
+button
+  -webkit-appearance: none
+  appearance: none
+  background: none
+  border: none
+  font: inherit
+  color: inherit
+
+.btn
+  position: relative
+  display: flex
+  justify-content: center
+  align-items: center
+  outline: 0
+  padding: 1rem 1rem
+  min-height: 40px
   text-transform: uppercase
   color: white
   border: 2px solid white
   border-radius: 3px
   font-weight: bold
 
-  &--large
+  &.large
     width: 230px
     height: 60px
 
-  &--green
+  &.green
     background-color: $green
 
-  &--red
+  &.red
     background-color: $red
     border-color: $red

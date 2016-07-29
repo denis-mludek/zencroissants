@@ -21,6 +21,10 @@ trait Repository[T]  {
     collection.insert(doc)
   }
 
+  def update(selector: JsObject, update: JsObject)(implicit reactiveMongoApi: ReactiveMongoApi): Future[WriteResult] = {
+    collection.update(selector, update, upsert = false)
+  }
+
   def upsert(selector: JsObject, doc: T)(implicit reactiveMongoApi: ReactiveMongoApi): Future[WriteResult] = {
     collection.update(selector, Json.obj("$set" -> doc), upsert = true)
   }

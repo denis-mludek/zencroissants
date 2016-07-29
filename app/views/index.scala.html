@@ -3,7 +3,7 @@
 @(list: Seq[models.Croissant])
 
 @main {
-    <div class="lastBeenHad">
+    <article class="lastBeenHad" data-id="nono">
         <img class="croissant_aside" src="@routes.Assets.versioned("/images/croissant.svg")" />
         <div class="lastBeenHad__content">
             <p class="lastBeenHad__content__text">
@@ -12,17 +12,17 @@
             </p>
             <img src="@routes.Assets.versioned("/images/arnaud.jpg")" />
             <div class="lastBeenHad__content__actions">
-                <button class="button button--large button--green">Je confirme, il a payé</button>
-                <button class="button button--large button--red">Mettre la pression</button>
+                <button class="button button--large button--green" data-action="confirm">Je confirme, il a payé</button>
+                <button class="button button--large button--red" data-action="pression">Mettre la pression</button>
             </div>
         </div>
-    </div>
+    </article>
     <div class="listBeenHad">
         <div class="listBeenHad__content">
             <h1 class="listBeenHad__content__title">Ils doivent payer leurs croissants</h1>
 
             @list.map { item =>
-                <div class="listBeenHad__content__item">
+                <article class="listBeenHad__content__item" data-id="@item.id">
                     <div class="listBeenHad__content__item__person">
                         <p class="listBeenHad__content__item__person__name">
                             <b>@item.victimId</b>
@@ -34,10 +34,10 @@
                         </p>
                     </div>
                     <div class="listBeenHad__content__item__actions">
-                        <button class="button button--large button--green">Je confirme, il a payé</button>
-                        <button class="button button--large button--red">Mettre la pression</button>
+                        <button class="button button--large button--green" data-action="confirm">Je confirme, il a payé</button>
+                        <button class="button button--large button--red" data-action="pression">Mettre la pression</button>
                     </div>
-                </div>
+                </article>
             }
         </div>
     </div>
