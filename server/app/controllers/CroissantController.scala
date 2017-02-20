@@ -1,33 +1,39 @@
 package controllers
 
-import javax.inject.{Inject, Singleton}
+import java.time.ZonedDateTime
 
-import common.Config
-import jobs.GmailJob
-import models.Croissant
-import modules.mail.Mail
+import dao.{CroissantDAO}
 import play.api.data._
 import play.api.data.Forms._
 import play.api.mvc.{Action, ActionBuilder, Controller, Request, Result, WrappedRequest}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.modules.reactivemongo.ReactiveMongoApi
-import org.joda.time._
+import utils.{Mailer, Settings}
+import play.api.libs.concurrent.Execution.Implicits._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
-@Singleton
-class Croissants @Inject()(
+
+class CroissantController(
+  val settings: Settings,
   val messagesApi: MessagesApi,
-  val gmailJob: GmailJob
-)(implicit
-  val reactiveMongoApi: ReactiveMongoApi,
-  val config: Config,
-  val mailer: Mail,
-  ec: ExecutionContext) extends Controller with I18nSupport {
+  mailer: Mailer,
+  croissantDAO: CroissantDAO
+) extends Controller with I18nSupport {
 
-  if (config.Gmail.activated)
-    gmailJob.schedule(None)
+  // if (config.Gmail.activated)
+  //   gmailJob.schedule(None)
+
+  def index = AuthenticatedAction.async { implicit request =>
+    croissantDAO.findNotDone(croissantDAO.getUserIdFromEmail(request.email).getOrElse("")).flatMap {
+      case croissants if croissants.isEmpty =>
+        croissantDAO.listNotDone().map { list =>
+          Ok(views.html.index(list.sortBy(_.creationDate.toInstant.toEpochMilli).reverse))
+        }
+      case croissants =>
+        Future.successful(Redirect(routes.CroissantController.owned(croissants.head.id)))
+    }
+  }
 
   case class AuthenticatedRequest[A](email: String, request: Request[A]) extends WrappedRequest[A](request) {
     def trigram = email.slice(0, email.indexOf('@'))
@@ -37,7 +43,7 @@ class Croissants @Inject()(
     def invokeBlock[A](request: Request[A], block: (AuthenticatedRequest[A]) => Future[Result]) = {
       request.session.get("email") match {
         case Some(email) => block(AuthenticatedRequest(email, request))
-        case None => Future.successful(Redirect(routes.Oauth.login(request.uri)))
+        case None => Future.successful(Redirect(routes.OauthController.login(request.uri)))
       }
     }
   }
@@ -47,28 +53,18 @@ class Croissants @Inject()(
     newCroissantsForm.bindFromRequest().fold(
       err => Future.successful(BadRequest(err.errorsAsJson)),
       {
-        case (from, subject, config.Api.secret) =>
+        case (from, subject, settings.Api.secret) =>
           val email = from.trim
-          Croissant.addCroissant(email, "", subject).map(_ => Ok)
+          croissantDAO.addCroissant(email, "", subject).map(_ => Ok)
         case _ => Future.successful(Forbidden)
       }
     )
   }
 
-  def index = AuthenticatedAction.async { implicit request =>
-    Croissant.findNotDone(Croissant.getUserIdFromEmail(request.email).getOrElse("")).flatMap {
-      case croissants if croissants.isEmpty =>
-        Croissant.listNotDone().map { list =>
-          Ok(views.html.index(list.sortBy(_.creationDate.getMillis).reverse))
-        }
-      case croissants =>
-        Future.successful(Redirect(routes.Croissants.owned(croissants.head.id)))
-    }
-  }
-
   def owned(id: String) = AuthenticatedAction.async { implicit request =>
-    val victimId = Croissant.getUserIdFromEmail(request.email)
-    Croissant.findById(id).map {
+    println(request.email)
+    val victimId = croissantDAO.getUserIdFromEmail(request.email)
+    croissantDAO.findById(id).map {
       case Some(croissant) if victimId.isDefined && croissant.victimId == victimId.get =>
         Ok(views.html.step1(victimId.get, croissant))
       case Some(croissant) => {
@@ -84,10 +80,10 @@ class Croissants @Inject()(
   }
 
   def schedule(id: String) = AuthenticatedAction.async { implicit request =>
-    val victimId = Croissant.getUserIdFromEmail(request.email)
-    Croissant.findById(id).flatMap {
+    val victimId = croissantDAO.getUserIdFromEmail(request.email)
+    croissantDAO.findById(id).flatMap {
       case Some(croissant) if victimId.isDefined && croissant.victimId == victimId.get =>
-        Croissant.findByDate.map { croissants =>
+        croissantDAO.findByDate.map { croissants =>
           Ok(views.html.step2(croissants, croissant))
         }
       case Some(croissant) =>
@@ -111,9 +107,9 @@ class Croissants @Inject()(
         Future.successful(BadRequest(formWithErrors.errorsAsJson))
       }, { case date =>
         val victimId = getUserIdFromEmail(request.email)
-        Croissant.findById(id).flatMap {
+        croissantDAO.findById(id).flatMap {
           case Some(croissant) if victimId.isDefined && croissant.victimId == victimId.get =>
-            Croissant.chooseDate(id, date).map { result =>
+            croissantDAO.chooseDate(id, date).map { result =>
               Ok(views.html.step3(victimId.get))
             }
           case Some(croissant) =>
@@ -126,9 +122,9 @@ class Croissants @Inject()(
   }
 
   def confirm(id: String) = AuthenticatedAction.async { implicit request =>
-    Croissant.findById(id).flatMap {
+    croissantDAO.findById(id).flatMap {
       case Some(croissant) if croissant.victimId != request.trigram =>
-        Croissant.vote(croissant, from = request.trigram).map { _ =>
+        croissantDAO.vote(croissant, from = request.trigram).map { _ =>
           Ok(Json.obj("success" -> "Croissant confirmed", "reload" -> true))
         }
       case Some(croissant) => Future.successful {
@@ -140,14 +136,14 @@ class Croissants @Inject()(
     }
   }
 
-  val pressionFired = scala.collection.concurrent.TrieMap.empty[(String, String), DateTime]
+  val pressionFired = scala.collection.concurrent.TrieMap.empty[(String, String), ZonedDateTime]
   def pression(id: String) = AuthenticatedAction.async { request =>
-    Croissant.findById(id).map {
+    croissantDAO.findById(id).map {
       case Some(croissant) =>
         val key = (croissant.id, request.trigram)
-        val now = DateTime.now
+        val now = ZonedDateTime.now
         pressionFired.get(key) match {
-          case Some(date) if (now.getMillis - date.getMillis) < 1000*3600*24 =>
+          case Some(date) if (now.toInstant.toEpochMilli - date.toInstant.toEpochMilli) < 1000*3600*24 =>
             play.api.Logger.debug(s"Not making pression on $id by ${request.trigram}")
             BadRequest(Json.obj("error" -> "Wait a bit before 2 pression sessions"))
           case _ =>
@@ -161,8 +157,8 @@ class Croissants @Inject()(
   }
 
   private def getUserIdFromEmail(email: String): Option[String] = {
-    val domains = config.Croissants.includedDomains
-    val excludedEmails = config.Croissants.excludedEmails
+    val domains = settings.Croissants.includedDomains
+    val excludedEmails = settings.Croissants.excludedEmails
 
     if (domains.exists(domain => email.endsWith(domain)) && !excludedEmails.contains(email)) {
       Some(email.split("@")(0))

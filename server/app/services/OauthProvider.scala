@@ -1,28 +1,28 @@
-package models
+package services
 
-import javax.inject.{ Inject, Singleton }
-import play.api.libs.json.{ JsError, JsPath, JsSuccess, JsValue, Reads }
-import play.api.libs.ws.{ WSClient, WSResponse }
+import models.Logging
+import play.api.libs.json._
+import play.api.libs.ws.{WSClient, WSResponse}
 import play.api.mvc.RequestHeader
-import scala.concurrent.{ ExecutionContext, Future }
+import utils.Settings
+
+import scala.concurrent.Future
 import scala.util.Success
+import play.api.libs.concurrent.Execution.Implicits._
 
-@Singleton
-class OauthProvider @Inject()(
-  val config: common.Config,
+class OauthProvider(
+  val settings: Settings,
   val ws: WSClient
-)(implicit ec: ExecutionContext) {
+) extends Logging {
 
-  val logger = play.api.Logger("extoauth")
+  val scopes = settings.Oauth.scopes
 
-  val scopes = config.Oauth.scopes
-
-  val authorizeUrl = config.Oauth.urlAuthorize
-  val tokenUrl = config.Oauth.urlToken
-  val userinfosUrl = config.Oauth.urlUserinfos
-  val removetokenUrl = config.Oauth.urlRemovetoken
-  val clientId = config.Oauth.clientId
-  val clientSecret = config.Oauth.clientSecret
+  val authorizeUrl = settings.Oauth.urlAuthorize
+  val tokenUrl = settings.Oauth.urlToken
+  val userinfosUrl = settings.Oauth.urlUserinfos
+  val removetokenUrl = settings.Oauth.urlRemovetoken
+  val clientId = settings.Oauth.clientId
+  val clientSecret = settings.Oauth.clientSecret
 
   def checkJsonResponse[A](desc: String, reads: Reads[A])(response: WSResponse) = {
     if (response.status == 200) {
@@ -58,27 +58,26 @@ class OauthProvider @Inject()(
 
   def userEmailReads: Reads[String] = {
     import play.api.libs.functional.syntax._
-    (
-      (JsPath \ "emails").read[Seq[JsValue]].flatMap { jsvalues =>
-        Reads { _ =>
-          jsvalues.map { jsvalue =>
-            (
-              (JsPath \ "value").read[String] ~
-              (JsPath \ "type").read[String]
-            ).tupled.reads(jsvalue).fold(
-              _ => None,
-              {
-                case (email, "account") => Some(email)
-                case _ => None
-              }
-            )
-          }.flatten.headOption match {
-            case Some(email) => JsSuccess(email)
-            case None => JsError(s"Missing account't email ($jsvalues)")
-          }
+
+    (JsPath \ "emails").read[Seq[JsValue]].flatMap { jsvalues =>
+      Reads { _ =>
+        jsvalues.map { jsvalue =>
+          (
+            (JsPath \ "value").read[String] ~
+            (JsPath \ "type").read[String]
+          ).tupled.reads(jsvalue).fold(
+            _ => None,
+            {
+              case (email, "account") => Some(email)
+              case _ => None
+            }
+          )
+        }.flatten.headOption match {
+          case Some(email) => JsSuccess(email)
+          case None => JsError(s"Missing account't email ($jsvalues)")
         }
       }
-    )
+    }
   }
 
   def getProviderUserEmailFromAccessToken(accessToken: String): Future[Option[String]] = {
@@ -116,7 +115,7 @@ class OauthProvider @Inject()(
 
 
   def callbackUrl() = {
-    config.Ui.host + controllers.routes.Oauth.callback().url
+    settings.Ui.host + controllers.routes.OauthController.callback().url
   }
 
   case class State(stoken: String, redirectUrl: String)

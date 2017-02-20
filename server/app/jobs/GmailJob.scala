@@ -1,18 +1,14 @@
 package jobs
 
-import javax.inject.{Inject, Singleton}
-
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import akka.actor.ActorSystem
-import common.Config
-import controllers.Croissants
-import models.Croissant
-import modules.mail.Mail
+import dao.CroissantDAO
+import models.Logging
 import org.joda.time.DateTime
 import play.api.libs.json.{Json, Reads}
 import play.api.libs.ws.WSClient
-import play.modules.reactivemongo.ReactiveMongoApi
+import utils.{Mailer, Settings}
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -22,20 +18,17 @@ case class AccessToken(
   refreshAt: DateTime
 )
 
-@Singleton
-class GmailJob @Inject()(
+class GmailJob(
   val ws: WSClient,
-  val system: ActorSystem
-)(implicit
-  val config: Config,
-  val reactiveMongoApi: ReactiveMongoApi,
-  val mailer: Mail) {
+  val system: ActorSystem,
+  val settings: Settings,
+  mailer: Mailer,
+  croissantDAO: CroissantDAO
+) extends Logging {
 
-  val logger = play.api.Logger("GmailJob")
-
-  val refreshtoken = config.Gmail.refreshtoken
-  val clientId = config.Gmail.clientId
-  val clientSecret = config.Gmail.clientSecret
+  val refreshtoken = settings.Gmail.refreshtoken
+  val clientId = settings.Gmail.clientId
+  val clientSecret = settings.Gmail.clientSecret
 
   val fromRegex = "(.*)<(.*)>".r
   val receivedFromRegex = "from +.*.google.com\\b".r
@@ -69,7 +62,7 @@ class GmailJob @Inject()(
 
               if (headerValid) {
                 val subject = message.payload.headers.collect { case Header("Subject", value) => value }.headOption
-                Croissant.addCroissant(email, name, subject)
+                croissantDAO.addCroissant(email, name, subject)
               } else {
                 logger.warn(s"Received invalid email with headers: ${message.payload.headers}")
               }

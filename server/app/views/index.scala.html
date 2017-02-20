@@ -1,0 +1,67 @@
+@import java.time.ZonedDateTime
+@import java.time.Duration
+@import java.time.format.DateTimeFormatter
+@(list: Seq[models.Croissant])
+
+@main {
+    <img class="croissant_aside" src="@routes.Assets.versioned("/images/croissant.svg")" />
+    <article class="lastBeenHad" style="background: url(@routes.Assets.versioned("/images/background.svg")) no-repeat center fixed;" data-id="nono">
+        @list.headOption match {
+            case Some(c: Croissant) => {
+                <div class="lastBeenHad__content">
+                    <div class="text">
+                        <p>
+                            <b>@c.name</b> est le/la dernier(e) à s'être fait(e) avoir...</p>
+                        <p>
+                            <b>On a besoin de ton aide pour savoir si les croissants ont bien été payés !</b>
+                        </p>
+                    </div>
+                    <div class="actions">
+                        <button class="btn large red" data-action="pression">Mettre la pression</button>
+                        <button class="btn large green" data-action="confirm">Je confirme, il a payé</button>
+                    </div>
+                </div>
+            }
+            case None => {
+                <div class="lastBeenHad__content">
+                    <div class="text">
+                        <p>
+                            Ils ont déjà tous payés leurs croissants et personne ne s'est fait avoir dernièrement... <br />
+                            Bravo, la sécurité de l'entreprise est préservée (mais on a faim !)
+                        </p>
+                    </div>
+                </div>
+            }
+        }
+    </article>
+    <div class="listBeenHad">
+        <div class="listBeenHad__content">
+            <h1 class="title">Ils doivent payer leurs croissants</h1>
+
+            @list.map { item =>
+                <article class="item" data-id="@item.id">
+                    <div class="person">
+                        <p class="name">
+                            <b>@item.victimId</b>
+                        </p>
+
+                        <p class="howlong">
+                            @defining(Duration.between(item.creationDate, ZonedDateTime.now).toDays) { days =>
+                                Il les doit depuis déjà @days jours. (@item.voters.size votes)
+                            }
+                        </p>
+                        @item.scheduleDate.map { scheduleDate =>
+                            <p>Il compte les apporter le @{scheduleDate.format(DateTimeFormatter.ofPattern("dd MMMM yyyy"))}</p>
+                        }
+                    </div>
+                    <div class="actions">
+                        <button class="btn large green border-white" data-action="confirm">Je confirme, il a payé</button>
+                        @if(item.scheduleDate.isEmpty) {
+                            <button class="btn large red" data-action="pression">Mettre la pression</button>
+                        }
+                    </div>
+                </article>
+            }
+        </div>
+    </div>
+}

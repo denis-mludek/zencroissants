@@ -1,16 +1,14 @@
 package controllers
 
-import javax.inject.{ Inject, Singleton }
-import play.api.libs.json.Json
-import play.api.mvc.{ Action, Controller, Result }
-import scala.concurrent.{ ExecutionContext, Future }
+import play.api.mvc.{Action, Controller, Result}
+import services.OauthProvider
 
-@Singleton
-class Oauth @Inject()(
-  val oauth: models.OauthProvider
-)(implicit ec: ExecutionContext) extends Controller {
+import scala.concurrent.Future
+import play.api.libs.concurrent.Execution.Implicits._
 
-  val logger = play.api.Logger("extoauth")
+class OauthController(
+  oauth: OauthProvider
+) extends Controller {
 
   def login(url: String) = Action {
     oauth.getSecureAuthorizeUrl(url) match { case (url, stoken) =>

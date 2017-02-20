@@ -1,0 +1,91 @@
+@(croissants: Seq[Croissant], croissant: Croissant)
+@import play.api.libs.json.Json
+
+@main {
+    <article class="lastBeenHad" style="background: url(@routes.Assets.versioned("/images/background.svg")) no-repeat center fixed;">
+        <img class="croissant_aside" src="@routes.Assets.versioned("/images/croissant.svg")" />
+        <div class="lastBeenHad__content">
+            <p class="text">
+                On te laisse le choix dans la <b>date</b> (et c'est un privilège !)
+            </p>
+            <div id="calendar"></div>
+            <div class="actions">
+                <a id="submitDate" href="#" class="btn large green">Ok, j'ai choisi la date</a>
+            </div>
+        </div>
+    </article>
+    <script type="text/javascript">
+
+        Croissify.startPika(document.getElementById('calendar'))
+
+        var croissants = @Html(Json.toJson(croissants.map(_.doneDate)).toString);
+        console.log(croissants)
+
+        // function disableTakenDays(date) {
+        //     var currentDate = moment(date).format('X');
+        //     console.log(currentDate)
+        //     var isDayTaken = R.find(function(croissant) {
+        //         if(!croissant.doneDate) return false
+        //         var croissantDoneDate = moment(croissant.doneDate)
+        //         console.log(croissantDoneDate)
+        //         console.log(moment(currentDate).isSame(croissantDoneDate, 'd'))
+        //         return moment(date).isSame(croissant.doneDate, 'd')
+        //     })(croissants)
+        //     return isDayTaken
+        // }
+        //
+        // var field = document.getElementById('calendar');
+        // var picker = new Pikaday({
+        //     disableWeekends: true,
+        //     numberOfMonths: 2,
+        //     minDate: moment().add(1, 'day').toDate(),
+        //     maxDate: moment().add(2, 'month').toDate(),
+        //     disableDayFn: disableTakenDays,
+        //     onSelect: function(date) {
+        //         console.log("date"+date)
+        //         field.value = date.getTime();
+        //     }
+        // });
+
+        function tryParseJson(txt) {
+          try {
+            return JSON.parse(txt);
+          } catch (e) {
+            return undefined;
+          }
+        }
+
+        function ajaxError(req) {
+          const json = tryParseJson(req.response);
+          return json || {error: 'error while sending HTTP request'};
+        }
+
+        function ajaxPostWithData(url, data, cb) {
+          const req = new XMLHttpRequest();
+          req.open('POST', url, true);
+          req.onreadystatechange = () => {
+            if (req.readyState == 4) {
+              if (req.status == 200) cb(undefined, tryParseJson(req.response));
+              else cb(ajaxError(req));
+            }
+          };
+          req.send(data);
+        }
+
+        document.getElementById("submitDate").onclick = function (e) {
+          e.preventDefault();
+          var date = moment(field.value).format("YYYY-MM-DD");
+          console.log(date);
+          var data = new FormData();
+          data.append("date", date);
+          ajaxPostWithData("@routes.CroissantController.choose(croissant.id)", data, function (err, res) {
+            if (err) alert(err);
+            else {
+              window.location = "@routes.CroissantController.index()";
+            }
+            console.log(err, res);
+          })
+          return false;
+        }
+    </script>
+}
