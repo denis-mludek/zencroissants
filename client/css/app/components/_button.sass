@@ -1,0 +1,50 @@
+
+button
+  -webkit-appearance: none
+  appearance: none
+  background: none
+  border: none
+  font: inherit
+  color: inherit
+
+.btn
+  position: relative
+  display: flex
+  align-self: flex-start
+  justify-content: center
+  align-items: center
+  outline: 0
+  padding: 1rem 1rem
+  min-height: 40px
+  text-transform: uppercase
+  color: white
+  border: 2px solid white
+  border-radius: 3px
+  font-weight: bold
+  box-shadow: 0 0 0 0 transparent
+  transition: all 140ms ease-in-out
+
+  & + &
+    margin-left: 20px
+
+  &:hover,
+  &:focus
+    -webkit-filter: opacity(85%)
+    filter: opacity(85%)
+    transform: scale(1.03)
+
+
+  &.large
+    width: 230px
+
+  &.green
+    color: white
+    background-color: $green
+    border-color: $green
+
+    &.border-white
+      border-color: white
+
+  &.red
+    background-color: $red
+    border-color: $red

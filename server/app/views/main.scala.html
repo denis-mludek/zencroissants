@@ -1,0 +1,18 @@
+@(content: Html)
+
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <title>ZenCroissants</title>
+    <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/main.css")"/>
+    <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/pikaday.css")"/>
+    <link href='https://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>
+    <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js" type="text/javascript"></script>
+    <script src="@routes.Assets.at("javascripts/pnotify.custom.min.js")" type="text/javascript"></script>
+    <link href="@routes.Assets.at("stylesheets/pnotify.custom.min.css")" media="all" rel="stylesheet" type="text/css" />
+  </head>
+  <body>
+    @content
+  </body>
+</html>

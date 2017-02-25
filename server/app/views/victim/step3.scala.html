@@ -1,0 +1,26 @@
+@(trigram: String)
+
+@main {
+    <article class="lastBeenHad victim-confirmation" style="background: url(@routes.Assets.at("images/background.svg")) no-repeat center top fixed">
+        <img class="croissant_aside" src="@routes.Assets.at("images/croissant.svg")" />
+        <div class="lastBeenHad__content">
+            <div class="lastBeenHad__content__text">
+                <div class="thanks">Merci <b>@trigram</b> !</div>
+
+                <div class="warning">Attention, tu seras jugé sur plusieurs critères :</div>
+
+                <ol class="warning-list">
+                    <li>Le respect de ton engagement</li>
+                    <span>Tout manquement au règlement entrainera un durcissement de la sentance et beaucoup de trolls</span>
+                    <li>La qualité des croissants</li>
+                    <span>(ou tout autre collation accompagnant les thés ou café des Zengulars)</span>
+                    <li>La quantité des croissants</li>
+                    <span>Quoi de pire qu'un Zengular sans croissants ? Un Zengular qui pensait en avoir mais qui finalement n'en a pas.</span>
+                </ol>
+            </div>
+            <div class="lastBeenHad__content__actions">
+                <a href="/" class="btn large green">J'ai compris et je me soumets aux conditions car je l'ai bien mérité</a>
+            </div>
+        </div>
+    </article>
+}

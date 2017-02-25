@@ -1,0 +1,21 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+GET     /                           controllers.CroissantController.index
+
+POST    /api/croissants             controllers.CroissantController.newCroissant
+POST    /api/actions/confirm        controllers.CroissantController.confirm(id)
+POST    /api/actions/pression       controllers.CroissantController.pression(id)
+
+GET     /schedule/owned/:id         controllers.CroissantController.owned(id)
+POST    /schedule/choose/:id        controllers.CroissantController.choose(id)
+GET     /schedule/:id/confirmation  controllers.CroissantController.confirmation(id)
+GET     /schedule/:id               controllers.CroissantController.schedule(id)
+
+GET     /login                      controllers.OauthController.login(url)
+GET     /logout                     controllers.OauthController.logout(url: String ?= "/")
+GET     /oauthcallback              controllers.OauthController.callback
+
+# Map static resources from the /public folder to the /assets URL path
+GET     /assets/*file               controllers.Assets.at(path="/public", file)
