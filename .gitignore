@@ -4,9 +4,12 @@ server.pid
 .cache
 .DS_Store
 .idea
+.vscode
+npm-debug.log
+node_modules/
 
-scripts/node_modules/
-scripts/npm-debug.log
+*.js.map
+*.css.map
 
 server/project/target
 server/target

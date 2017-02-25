@@ -12,7 +12,7 @@ class Mailer(
       subject = subject,
       from = "Zencroissants <"+ settings.Mail.contact +">",
       to = Seq(toName + "<"+ to +">"),
-      bodyHtml = Some(views.txt.email.confirmCroissants(victimName, userName).toString)
+      bodyHtml = Some(views.html.email.confirmCroissants(victimName, userName).toString)
     ))
   }
 
@@ -21,7 +21,7 @@ class Mailer(
       subject = "Zencroissant a désigné sa nouvelle victime !",
       from = "Zencroissants <"+ settings.Mail.contact +">",
       to = Seq("All <"+ settings.Mail.all +">"),
-      bodyHtml = Some(views.txt.email.zenall(victimName, mbMessage, zencroissantURL).toString)
+      bodyHtml = Some(views.html.email.zenall(victimName, mbMessage, zencroissantURL).toString)
     ))
   }
 
@@ -30,7 +30,7 @@ class Mailer(
       subject = userName + " vient de te relancer. Tu vas devoir payer tes croissants rapidos.",
       from = "Zencroissants <"+ settings.Mail.contact +">",
       to = Seq(victimName + " <"+ to +">"),
-      bodyHtml = Some(views.txt.email.pression(victimName, userName).toString)
+      bodyHtml = Some(views.html.email.pression(victimName, userName).toString)
     ))
   }
 
@@ -39,7 +39,7 @@ class Mailer(
       subject = "Croissify !",
       from = "Zencroissants <"+ settings.Mail.contact +">",
       to = Seq(victimName + " <"+ to +">"),
-      bodyHtml = Some(views.txt.email.victim(victimName).toString)
+      bodyHtml = Some(views.html.email.victim(victimName).toString)
     ))
   }
 

@@ -1,17 +1,17 @@
 package dao
 
-import java.time.ZonedDateTime
+import java.time.{Instant, ZoneOffset, ZonedDateTime}
 
 import models.{Croissant, Logging, Status}
-import org.joda.time.DateTime
 import play.api.Logger
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json._
 import reactivemongo.api.commands.WriteResult
 import utils.{Mailer, Settings}
 
 import scala.concurrent.Future
 import play.api.libs.concurrent.Execution.Implicits._
 import play.modules.reactivemongo.ReactiveMongoApi
+import reactivemongo.play.json._
 
 class CroissantDAO(
   val settings: Settings,
@@ -54,7 +54,7 @@ class CroissantDAO(
     }
   }
 
-  def chooseDate(id: String, date: DateTime): Future[WriteResult] = {
+  def chooseDate(id: String, date: ZonedDateTime): Future[WriteResult] = {
     val query = Json.obj(
       "id" -> id
     )
@@ -79,7 +79,7 @@ class CroissantDAO(
             "id" -> croissant.id,
             "scheduleDate" -> Json.obj("$exists" -> false)
           ),
-          Json.obj("$set" -> Json.obj("scheduleDate" -> DateTime.now))
+          Json.obj("$set" -> Json.obj("scheduleDate" -> ZonedDateTime.now))
         )
       }
       else Future.successful(())
@@ -104,10 +104,7 @@ class CroissantDAO(
   }
 
   def findByDate() = {
-    val beginDate = DateTime.now.dayOfMonth().withMinimumValue()
-      .hourOfDay().withMinimumValue()
-      .minuteOfHour().withMinimumValue()
-      .secondOfMinute().withMinimumValue()
+    val beginDate = ZonedDateTime.now
     val query = Json.obj(
       "doneDate" -> Json.obj(
         "$gte" -> beginDate

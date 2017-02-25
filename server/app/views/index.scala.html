@@ -1,14 +1,16 @@
 @import java.time.ZonedDateTime
 @import java.time.Duration
 @import java.time.format.DateTimeFormatter
-@(list: Seq[models.Croissant])
+@(list: Seq[models.Croissant])(
+    implicit request: LoggedRequest[_]
+)
 
 @main {
-    <img class="croissant_aside" src="@routes.Assets.versioned("/images/croissant.svg")" />
-    <article class="lastBeenHad" style="background: url(@routes.Assets.versioned("/images/background.svg")) no-repeat center fixed;" data-id="nono">
+    <img class="croissant_aside" src="@routes.Assets.at("images/croissant.svg")" />
+    <article class="lastBeenHad" style="background: url(@routes.Assets.at("images/background.svg")) no-repeat center top fixed;">
         @list.headOption match {
             case Some(c: Croissant) => {
-                <div class="lastBeenHad__content">
+                <div class="lastBeenHad__content"  data-id="@c.id">
                     <div class="text">
                         <p>
                             <b>@c.name</b> est le/la dernier(e) à s'être fait(e) avoir...</p>
@@ -36,7 +38,7 @@
     </article>
     <div class="listBeenHad">
         <div class="listBeenHad__content">
-            <h1 class="title">Ils doivent payer leurs croissants</h1>
+            <h1 class="title">On attends toujours leurs croissants</h1>
 
             @list.map { item =>
                 <article class="item" data-id="@item.id">
@@ -47,11 +49,20 @@
 
                         <p class="howlong">
                             @defining(Duration.between(item.creationDate, ZonedDateTime.now).toDays) { days =>
-                                Il les doit depuis déjà @days jours. (@item.voters.size votes)
+                                @if(item.victimId == request.trigram) {
+                                    Tu nous les doit depuis déjà @days jours. (@item.voters.size votes)
+                                }else{
+                                    Il les doit depuis déjà @days jours. (@item.voters.size votes)
+                                }
                             }
                         </p>
                         @item.scheduleDate.map { scheduleDate =>
-                            <p>Il compte les apporter le @{scheduleDate.format(DateTimeFormatter.ofPattern("dd MMMM yyyy"))}</p>
+                            @if(item.victimId == request.trigram) {
+                                <p>Tu as choisi de les apporter le @{scheduleDate.format(DateTimeFormatter.ofPattern("dd MMMM yyyy"))}</p>
+                            } else {
+                                <p>Il compte les apporter le @{scheduleDate.format(DateTimeFormatter.ofPattern("dd MMMM yyyy"))}</p>
+                            }
+
                         }
                     </div>
                     <div class="actions">
@@ -64,4 +75,82 @@
             }
         </div>
     </div>
+    <script type="text/javascript">
+            (function (document) {
+
+                function tryParseJson(txt) {
+                    try {
+                        return JSON.parse(txt);
+                    } catch (e) {
+                        return undefined;
+                    }
+                }
+
+                function ajaxError(req) {
+                    const json = tryParseJson(req.response);
+                    return json || {error: 'error while sending HTTP request'};
+                }
+
+                function ajaxPOST(url, cb) {
+                    const req = new XMLHttpRequest();
+                    req.open('POST', url, true);
+                    req.onreadystatechange = () => {
+                        if (req.readyState == 4) {
+                            if (req.status == 200) cb(undefined, tryParseJson(req.response));
+                            else cb(ajaxError(req));
+                        }
+                    };
+                    req.send(null);
+                }
+
+                function runAction(action, id) {
+                    ajaxPOST('/api/actions/' + action + '?id=' + id, (err, resp) => {
+                        if (err) {
+                            new PNotify({
+                                title: 'Nope!',
+                                text: err.error,
+                                type: 'error'
+                            })
+                            console.error('Error while sending action:', err.error);
+                        }
+                        else {
+                            if (resp.reload === true) window.location.reload();
+                            if(action === 'pression') {
+                                new PNotify({
+                                    title: 'Ok!',
+                                    type: 'success',
+                                    text: resp.success
+                                })
+                            }
+                        }
+                    });
+                }
+
+                function init() {
+                    const actions = document.querySelectorAll('[data-action]');
+                    for (let i=0; i < actions.length; i++) {
+                        actions[i].onclick = (e) => {
+                            const target = e.target;
+                            const action = target.getAttribute('data-action');
+
+                            let id = undefined;
+                            {
+                                let it = target.parentElement;
+                                while (it) {
+                                    id = it.getAttribute('data-id');
+                                    if (id) break;
+                                    it = it.parentElement;
+                                }
+                            }
+
+                            if (action && id) runAction(action, id);
+                        };
+                    }
+                }
+
+                if (document.readyState != 'loading') init();
+                else document.addEventListener('DOMContentLoaded', init);
+
+            })(document);
+    </script>
 }

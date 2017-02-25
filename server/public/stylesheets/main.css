@@ -1,0 +1,179 @@
+*, *::before, *::after {
+  box-sizing: border-box; }
+
+*[href], *[onClick], *[for] {
+  cursor: pointer; }
+
+a, a:active, a:focus, a:link, a:visited {
+  color: inherit;
+  text-decoration: inherit; }
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video, button {
+  margin: 0;
+  padding: 0;
+  border: 0; }
+
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section, main, textarea {
+  display: block; }
+
+ol, ul {
+  list-style: none; }
+
+html {
+  font-size: 15px;
+  line-height: 2.5em; }
+
+body {
+  font-size: .9rem;
+  font-weight: 400;
+  letter-spacing: .05em;
+  position: relative; }
+  body * {
+    font-family: 'Montserrat', sans-serif; }
+
+.croissant_aside {
+  position: absolute;
+  left: 0;
+  top: 80vh;
+  transform: translateY(-50%); }
+
+.lastBeenHad {
+  height: 100vh;
+  width: 100%; }
+  .lastBeenHad__content {
+    height: inherit;
+    max-width: 940px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: auto; }
+    .lastBeenHad__content .text {
+      text-align: center;
+      margin: 30px;
+      font-size: 2rem; }
+    .lastBeenHad__content .actions {
+      display: flex; }
+      .lastBeenHad__content .actions button + button {
+        margin-left: 40px; }
+
+.listBeenHad {
+  padding: 15px;
+  background-color: #50E3C2;
+  min-height: 100vh; }
+  .listBeenHad__content {
+    max-width: 940px;
+    margin: auto; }
+    .listBeenHad__content .title {
+      text-align: center;
+      text-transform: uppercase;
+      color: white;
+      font-size: 2.5rem;
+      margin: 40px 0; }
+    .listBeenHad__content .item {
+      height: 60px;
+      padding: 60px 0;
+      width: 100%;
+      display: flex;
+      align-items: center; }
+      .listBeenHad__content .item + .item {
+        border-top: 1px solid white; }
+      .listBeenHad__content .item .person {
+        color: white;
+        width: 50%; }
+        .listBeenHad__content .item .person .name {
+          font-size: 1.5rem;
+          margin: 0 0 10px 0; }
+        .listBeenHad__content .item .person .howlong {
+          margin: 0; }
+      .listBeenHad__content .item .actions {
+        display: flex;
+        justify-content: flex-end; }
+        .listBeenHad__content .item .actions .unavailable {
+          text-transform: uppercase;
+          font-size: 1rem;
+          color: white; }
+
+.lastBeenHad.victim-confirmation .thanks {
+  font-size: 4em;
+  margin-bottom: 40px; }
+
+.lastBeenHad.victim-confirmation .warning {
+  font-size: 2em;
+  margin-bottom: 60px; }
+
+.lastBeenHad.victim-confirmation .warning-list {
+  list-style-type: decimal;
+  margin-bottom: 90px;
+  list-style-position: inside; }
+  .lastBeenHad.victim-confirmation .warning-list li {
+    font-size: 1.8em;
+    font-weight: bold; }
+  .lastBeenHad.victim-confirmation .warning-list span {
+    font-size: 1.2em; }
+
+.lastBeenHad.victim-confirmation .lastBeenHad__content__actions {
+  display: flex;
+  justify-content: center;
+  width: 100%; }
+  .lastBeenHad.victim-confirmation .lastBeenHad__content__actions a {
+    width: 60%;
+    text-align: center;
+    font-size: 1.3em; }
+
+button {
+  -webkit-appearance: none;
+  appearance: none;
+  background: none;
+  border: none;
+  font: inherit;
+  color: inherit; }
+
+.btn {
+  position: relative;
+  display: flex;
+  align-self: flex-start;
+  justify-content: center;
+  align-items: center;
+  outline: 0;
+  padding: 1rem 1rem;
+  min-height: 40px;
+  text-transform: uppercase;
+  color: white;
+  border: 2px solid white;
+  border-radius: 3px;
+  font-weight: bold;
+  box-shadow: 0 0 0 0 transparent;
+  transition: all 140ms ease-in-out; }
+  .btn + .btn {
+    margin-left: 20px; }
+  .btn:hover, .btn:focus {
+    -webkit-filter: opacity(85%);
+    filter: opacity(85%);
+    transform: scale(1.03); }
+  .btn.large {
+    width: 230px; }
+  .btn.green {
+    color: white;
+    background-color: #50E3C2;
+    border-color: #50E3C2; }
+    .btn.green.border-white {
+      border-color: white; }
+  .btn.red {
+    background-color: #E35C4F;
+    border-color: #E35C4F; }
+
+/*# sourceMappingURL=main.css.map*/

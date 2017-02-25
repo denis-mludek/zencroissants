@@ -1,0 +1,16 @@
+@(trigram: String, croissant: Croissant)
+
+@main {
+  <article class="lastBeenHad" style="background: url(@routes.Assets.at("images/background.svg")) no-repeat center top fixed;">
+    <img class="croissant_aside" src="@routes.Assets.at("images/croissant.svg")" />
+    <div class="lastBeenHad__content">
+      <p class="text">
+        Salut <b>@trigram</b>,  désolé de te l'annoncer comme ça mais... <br />
+        <b>Tu vas devoir payer tes croissants !</b>
+      </p>
+      <div class="actions">
+        <a href="@routes.CroissantController.schedule(croissant.id)" class="btn large green">Ok, je le mérite</a>
+      </div>
+    </div>
+  </article>
+}
