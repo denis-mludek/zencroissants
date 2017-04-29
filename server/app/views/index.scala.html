@@ -13,14 +13,29 @@
                 <div class="lastBeenHad__content"  data-id="@c.id">
                     <div class="text">
                         <p>
-                            <b>@c.name</b> est le/la dernier(e) à s'être fait(e) avoir...</p>
-                        <p>
-                            <b>On a besoin de ton aide pour savoir si les croissants ont bien été payés !</b>
+                            <b>@c.name</b> est le/la dernier(e) à s'être fait(e) avoir...
                         </p>
+                        @c.scheduleDate.map { scheduleDate =>
+                          <p>
+                            Il/elle a choisi de les apporter le <b>@scheduleDate.format(DateTimeFormatter.ofPattern("dd MMMM yyyy")) !</b>
+                            <br />
+                            <b>On a besoin de ton aide pour savoir si les croissants ont bien été payés !</b>
+                          </p>
+                        }.getOrElse {
+                          <p>
+                            Il/elle n'a pas encore choisi la date !
+                          </p>
+                        }
                     </div>
                     <div class="actions">
                         <button class="btn large red" data-action="pression">Mettre la pression</button>
-                        <button class="btn large green" data-action="confirm">Je confirme, il a payé</button>
+                        @c.scheduleDate.map { scheduleDate =>
+                          @defining(ZonedDateTime.now) { now =>
+                            @if(scheduleDate.isAfter(now.toLocalDate.atStartOfDay(now.getZone))) {
+                                <button class="btn large green" data-action="confirm">Je confirme, il a payé</button>
+                              }
+                          }
+                        }
                     </div>
                 </div>
             }
@@ -60,7 +75,7 @@
                             @if(item.victimId == request.trigram) {
                                 <p>Tu as choisi de les apporter le @{scheduleDate.format(DateTimeFormatter.ofPattern("dd MMMM yyyy"))}</p>
                             } else {
-                                <p>Il compte les apporter le @{scheduleDate.format(DateTimeFormatter.ofPattern("dd MMMM yyyy"))}</p>
+                                <p>Il/elle compte les apporter le @{scheduleDate.format(DateTimeFormatter.ofPattern("dd MMMM yyyy"))}</p>
                             }
 
                         }
@@ -114,13 +129,18 @@
                             console.error('Error while sending action:', err.error);
                         }
                         else {
-                            if (resp.reload === true) window.location.reload();
-                            if(action === 'pression') {
-                                new PNotify({
-                                    title: 'Ok!',
-                                    type: 'success',
-                                    text: resp.success
-                                })
+                            if (action === 'pression') {
+                              new PNotify({
+                                  title: 'Ok!',
+                                  type: 'success',
+                                  text: resp.success
+                              })
+                            } else if (action === 'confirm') {
+                              new PNotify({
+                                  title: 'Ok!',
+                                  type: 'success',
+                                  text: resp.success
+                              })
                             }
                         }
                     });

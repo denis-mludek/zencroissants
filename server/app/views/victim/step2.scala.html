@@ -1,5 +1,6 @@
-@(croissants: Seq[Croissant], croissant: Croissant)
 @import play.api.libs.json.Json
+
+@(croissants: Seq[Croissant], croissant: Croissant)
 
 @main {
     <article class="lastBeenHad" style="background: url(@routes.Assets.at("images/background.svg")) no-repeat center top fixed">
@@ -20,26 +21,22 @@
     <script type="text/javascript">
 
         const calendarElement = document.getElementById('calendar')
-        const croissants = @Json.stringify(Json.toJson(croissants.map(_.doneDate)))
+        const croissantsJson = @Html(Json.stringify(Json.toJson(croissants)))
 
-          const picker = new Pikaday({
-            disableWeekends: true,
-            numberOfMonths: 1,
-            minDate: moment().add(1, 'day').toDate(),
-            maxDate: moment().add(2, 'month').toDate(),
-            disableDayFn: date => {
-              const isDayTaken = croissants.find(croissant => {
-                  if(!croissant.doneDate) return false
-                  const doneDateMoment = moment(croissant.doneDate)
-                  return moment(date).isSame(doneDateMoment, 'd')
-              })
-              return isDayTaken
-            }
-          })
+        const picker = new Pikaday({
+          disableWeekends: true,
+          numberOfMonths: 1,
+          minDate: moment().add(1, 'day').toDate(),
+          maxDate: moment().add(2, 'month').toDate(),
+          disableDayFn: date => {
+            return croissantsJson.find(c => {
+              const scheduleDateMoment = moment(c.scheduleDate)
+              return moment(date).isSame(scheduleDateMoment, 'd')
+            })
+          }
+        })
 
         calendarElement.parentNode.insertBefore(picker.el, calendarElement.nextSibling)
-
-
 
         function tryParseJson(txt) {
           try {

@@ -34,6 +34,11 @@ class Settings(
       val str = requiredString("croissants.included_domains")
       str.split(",").map(_.trim).toList
     }
+
+    val adminTrigrams = {
+      val str = requiredString("croissants.admin_trigrams")
+      str.split(",").map(_.trim).toList
+    }
   }
 
   object mongodb {

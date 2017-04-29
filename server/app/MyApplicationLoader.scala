@@ -31,11 +31,12 @@ class MyComponents(context: Context) extends ReactiveMongoApiFromContext(context
 
   val croissantDAO = new CroissantDAO(settings, mailer, reactiveMongoApi)
   val oauthProvider = new OauthProvider(settings, wsClient)
-  val gmailJob = new GmailJob(wsClient, actorSystem, settings, mailer, croissantDAO)
+  //val gmailJob = new GmailJob(wsClient, actorSystem, settings, mailer, croissantDAO)
 
   lazy val router = new Routes(
     httpErrorHandler,
     new controllers.CroissantController(settings, messagesApi, mailer, croissantDAO),
+    new controllers.AdminCroissantController(settings, messagesApi, mailer, croissantDAO),
     new controllers.OauthController(oauthProvider),
     new controllers.Assets(httpErrorHandler)
   )

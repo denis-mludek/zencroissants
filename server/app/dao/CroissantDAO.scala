@@ -76,10 +76,11 @@ class CroissantDAO(
       if (croissant.voters.size >= settings.Croissants.nbVotersToDone && !croissant.isDone) {
         update(
           Json.obj(
-            "id" -> croissant.id,
-            "scheduleDate" -> Json.obj("$exists" -> false)
+            "id" -> croissant.id
           ),
-          Json.obj("$set" -> Json.obj("scheduleDate" -> ZonedDateTime.now))
+          Json.obj(
+            "$set" -> Json.obj("doneDate" -> ZonedDateTime.now)
+          )
         )
       }
       else Future.successful(())
@@ -94,7 +95,7 @@ class CroissantDAO(
     ))
   }
 
-  def findNotDone(victimId: String) = {
+  def findNotScheduled(victimId: String) = {
     findByOpt(Json.obj(
       "victimId" -> victimId,
       "scheduleDate" -> Json.obj(
@@ -103,14 +104,14 @@ class CroissantDAO(
     ))
   }
 
-  def findByDate() = {
+  def findScheduledByDate() = {
     val beginDate = ZonedDateTime.now
     val query = Json.obj(
-      "doneDate" -> Json.obj(
-        "$gte" -> beginDate
-      ),
-      "doneDate" -> Json.obj(
+      "scheduleDate" -> Json.obj(
         "$exists" -> true
+      ),
+      "scheduleDate" -> Json.obj(
+        "$gte" -> beginDate
       )
     )
     list(query)

@@ -1,9 +1,8 @@
 package controllers
 
-import java.time.{ZoneOffset, ZonedDateTime}
+import java.time.{LocalDate, ZoneOffset, ZonedDateTime}
 
 import dao.CroissantDAO
-import models.LoggedRequest
 import play.api.data._
 import play.api.data.Forms._
 import play.api.mvc._
@@ -26,27 +25,14 @@ class CroissantController(
   //   gmailJob.schedule(None)
 
   def index = AuthenticatedAction.async { implicit request =>
-    croissantDAO.findNotDone(croissantDAO.getUserIdFromEmail(request.email).getOrElse("")).flatMap {
-      case croissants if croissants.isEmpty =>
+    croissantDAO.findNotScheduled(croissantDAO.getUserIdFromEmail(request.email).getOrElse("")).flatMap {
+      case Some(croissant) =>
+        Future.successful(Redirect(routes.CroissantController.owned(croissant.id)))
+      case None =>
         croissantDAO.listNotDone().map { list =>
           Ok(views.html.index(list.sortBy(_.creationDate.toInstant.toEpochMilli).reverse))
         }
-      case croissants =>
-        Future.successful(Redirect(routes.CroissantController.owned(croissants.head.id)))
     }
-  }
-
-  val newCroissantsForm = Form(tuple("from" -> email, "subject" -> optional(text), "secret" -> nonEmptyText))
-  def newCroissant = Action.async(parse.tolerantJson) { implicit request =>
-    newCroissantsForm.bindFromRequest().fold(
-      err => Future.successful(BadRequest(err.errorsAsJson)),
-      {
-        case (from, subject, settings.Api.secret) =>
-          val email = from.trim
-          croissantDAO.addCroissant(email, "", subject).map(_ => Ok)
-        case _ => Future.successful(Forbidden)
-      }
-    )
   }
 
   def owned(id: String) = AuthenticatedAction.async { implicit request =>
@@ -70,7 +56,7 @@ class CroissantController(
     val victimId = croissantDAO.getUserIdFromEmail(request.email)
     croissantDAO.findById(id).flatMap {
       case Some(croissant) if victimId.isDefined && croissant.victimId == victimId.get =>
-        croissantDAO.findByDate().map { croissants =>
+        croissantDAO.findScheduledByDate().map { croissants =>
           Ok(views.html.victim.step2(croissants, croissant))
         }
       case Some(_) =>
@@ -81,19 +67,18 @@ class CroissantController(
   }
 
   val chooseForm = Form(
-    "date" -> localDate("yyyy-MM-dd")
-//       .verifying("Invalid Date", date => date.hourOfDay().withMaximumValue()
-//                                              .minuteOfHour().withMaximumValue()
-//                                              .secondOfMinute().withMaximumValue().isAfterNow
-//                                              && date.plus(Period.months(2)).isBeforeNow
-//      )
+    "date" -> localDate("yyyy-MM-dd").verifying("Invalid Date", date => {
+      val today = LocalDate.now
+      date.isAfter(LocalDate.now) && date.isBefore(today.plusMonths(2))
+    })
   )
+
   def choose(id: String) = AuthenticatedAction.async { implicit request =>
     chooseForm.bindFromRequest.fold(
       formWithErrors => {
         Future.successful(BadRequest(formWithErrors.errorsAsJson))
       },{ date =>
-        val victimId = getUserIdFromEmail(request.email)
+        val victimId = croissantDAO.getUserIdFromEmail(request.email)
         croissantDAO.findById(id).flatMap {
           case Some(croissant) if victimId.isDefined && croissant.victimId == victimId.get =>
             val zonedDateTime = date.atStartOfDay(ZoneOffset.UTC)
@@ -142,7 +127,7 @@ class CroissantController(
         val key = (croissant.id, request.trigram)
         val now = ZonedDateTime.now
         pressionFired.get(key) match {
-          case Some(date) => //if (now.toInstant.toEpochMilli - date.toInstant.toEpochMilli) < 1000*3600*24 =>
+          case Some(date) if (now.toInstant.toEpochMilli - date.toInstant.toEpochMilli) < 1000*3600*24 =>
             play.api.Logger.debug(s"Not making pression on $id by ${request.trigram}")
             BadRequest(Json.obj("error" -> "Doucement, laisse lui du temps avant de re-voter."))
           case _ =>
@@ -154,16 +139,4 @@ class CroissantController(
       case None => NotFound(Json.obj("error" -> "Croissant not found :-("))
     }
   }
-
-  private def getUserIdFromEmail(email: String): Option[String] = {
-    val domains = settings.Croissants.includedDomains
-    val excludedEmails = settings.Croissants.excludedEmails
-
-    if (domains.exists(domain => email.endsWith(domain)) && !excludedEmails.contains(email)) {
-      Some(email.split("@")(0))
-    } else {
-      None
-    }
-  }
-
 }
